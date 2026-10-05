@@ -101,30 +101,21 @@ export default function TrackingPage() {
 
   useEffect(() => {
     const currentRide = rideRef.current
-    if (!currentRide || currentRide.state !== 'requested') return undefined
+    if (!currentRide || currentRide.state !== 'accepted') return undefined
 
     const pickup = currentRide.pickup ?? DEFAULT_MAP_CENTER
-    const driverStart = { lat: pickup.lat + 0.014, lng: pickup.lng - 0.009 }
+    const driverStart = currentRide.driverLocation ?? { lat: pickup.lat + 0.014, lng: pickup.lng - 0.009 }
     const totalSteps = 10
     let step = 0
-    let acceptedEmitted = false
 
     const intervalId = window.setInterval(() => {
       step += 1
       setDriverLocation(interpolatePoint(driverStart, pickup, Math.min(1, step / totalSteps)))
-
-      if (!acceptedEmitted) {
-        acceptedEmitted = true
-        eventBus.emit('ride:accepted', { rideId })
-      }
-      if (step >= totalSteps) {
-        window.clearInterval(intervalId)
-        eventBus.emit('ride:arrived', { rideId })
-      }
+      if (step >= totalSteps) window.clearInterval(intervalId)
     }, 1100)
 
     return () => window.clearInterval(intervalId)
-  }, [rideId])
+  }, [ride?.state, rideId])
 
   const cancelRide = () => {
     moveRideToState('cancelled')

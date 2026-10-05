@@ -14,17 +14,19 @@ export default function RideRequestModal({ request, driverLocation, onAccept, on
   const [secondsLeft, setSecondsLeft] = useState(15)
 
   useEffect(() => {
+    if (!request) return undefined
+
     setSecondsLeft(15)
     const intervalId = window.setInterval(() => {
       setSecondsLeft((seconds) => Math.max(0, seconds - 1))
     }, 1000)
+    const timeoutId = window.setTimeout(() => onReject(request), 15000)
 
-    return () => window.clearInterval(intervalId)
-  }, [request?.id])
-
-  useEffect(() => {
-    if (secondsLeft === 0 && request) onReject(request)
-  }, [onReject, request, secondsLeft])
+    return () => {
+      window.clearInterval(intervalId)
+      window.clearTimeout(timeoutId)
+    }
+  }, [onReject, request?.id])
 
   if (!request) return null
 

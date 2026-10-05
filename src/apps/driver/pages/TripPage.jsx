@@ -42,12 +42,10 @@ function interpolateLocation(start, end, progress) {
 }
 
 function calculateFinalFare(ride, elapsedSeconds) {
-  const estimatedDuration = ride.estimatedDurationMin ?? 0
-  const rideDuration = estimatedDuration + elapsedSeconds / 60
   return calculateFare({
     rideType: ride.rideType,
     distanceKm: ride.distanceKm ?? 0,
-    durationMin: rideDuration,
+    durationMin: elapsedSeconds / 60,
     pickupLocation: null,
     pricingConfig: PRICING_CONFIG,
   })

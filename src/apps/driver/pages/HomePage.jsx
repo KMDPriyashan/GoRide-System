@@ -13,6 +13,7 @@ import RideRequestModal from '../components/RideRequestModal.jsx'
 
 const ONLINE_KEY = 'gr_driver_online'
 const ONLINE_SECONDS_KEY = 'gr_driver_seconds_today'
+const ONLINE_SECONDS_DATE_KEY = 'gr_driver_seconds_date'
 const DRIVER_DEMO_ID = 'driver-demo'
 
 function getStoredRides() {
@@ -27,13 +28,33 @@ function formatOnlineTime(seconds) {
   return `${hours}h ${String(minutes).padStart(2, '0')}m`
 }
 
+function localDateKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+function getTodayOnlineSeconds() {
+  const today = localDateKey(new Date())
+  if (getItem(ONLINE_SECONDS_DATE_KEY) !== today) return 0
+  return getItem(ONLINE_SECONDS_KEY, 0) || 0
+}
+
+function saveRequestOutcome(driverId, rideId, status) {
+  const storageKey = `gr_driver_requests_${driverId}`
+  const storedRequests = getItem(storageKey, [])
+  const requests = Array.isArray(storedRequests) ? storedRequests : []
+  const existingRequest = requests.find((request) => request.rideId === rideId)
+  if (existingRequest) existingRequest.status = status
+  else requests.push({ rideId, status, offeredAt: new Date().toISOString() })
+  setItem(storageKey, requests)
+}
+
 export default function DriverHomePage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const driverId = user?.id ?? DRIVER_DEMO_ID
   const [isOnline, setIsOnline] = useState(() => getItem(ONLINE_KEY, false) === true)
   const [driverLocation, setDriverLocation] = useState(DEFAULT_MAP_CENTER)
-  const [onlineSeconds, setOnlineSeconds] = useState(() => getItem(ONLINE_SECONDS_KEY, 0) || 0)
+  const [onlineSeconds, setOnlineSeconds] = useState(getTodayOnlineSeconds)
   const [requests, setRequests] = useState([])
   const tickRef = useRef(0)
   const queuedIds = useRef(new Set())
@@ -44,6 +65,12 @@ export default function DriverHomePage() {
     const intervalId = window.setInterval(() => {
       tickRef.current += 1
       setOnlineSeconds((seconds) => {
+        const today = localDateKey(new Date())
+        if (getItem(ONLINE_SECONDS_DATE_KEY) !== today) {
+          setItem(ONLINE_SECONDS_DATE_KEY, today)
+          setItem(ONLINE_SECONDS_KEY, 1)
+          return 1
+        }
         const nextSeconds = seconds + 1
         setItem(ONLINE_SECONDS_KEY, nextSeconds)
         return nextSeconds
@@ -63,14 +90,18 @@ export default function DriverHomePage() {
   }, [isOnline])
 
   const onRideRequested = useCallback((ride) => {
-    if (!ride?.id || ride.status !== 'requested' || queuedIds.current.has(ride.id)) return
+    if (!ride?.id || (ride.status ?? ride.state) !== 'requested' || queuedIds.current.has(ride.id)) return
     queuedIds.current.add(ride.id)
+    saveRequestOutcome(driverId, ride.id, 'offered')
     setRequests((pending) => [...pending, ride])
-  }, [])
+  }, [driverId])
 
   useEffect(() => {
     if (!isOnline) return undefined
     eventBus.on('ride:requested', onRideRequested)
+    getStoredRides()
+      .filter((ride) => (ride.status ?? ride.state) === 'requested')
+      .forEach(onRideRequested)
     return () => eventBus.off('ride:requested', onRideRequested)
   }, [isOnline, onRideRequested])
 
@@ -92,6 +123,7 @@ export default function DriverHomePage() {
 
   const rejectRide = useCallback((request) => {
     removeRequest(request)
+    saveRequestOutcome(driverId, request.id, 'rejected')
     eventBus.emit('ride:rejected', { rideId: request.id, driverId })
   }, [driverId, removeRequest])
 
@@ -111,6 +143,7 @@ export default function DriverHomePage() {
       : [...rides, acceptedRide]
     setItem('gr_rides', updatedRides)
     removeRequest(request)
+    saveRequestOutcome(driverId, request.id, 'accepted')
     eventBus.emit('ride:accepted', {
       rideId: request.id,
       driverId,
@@ -122,7 +155,11 @@ export default function DriverHomePage() {
   const assignedRides = useMemo(() => {
     return getStoredRides().filter((ride) => ride.driverId === driverId)
   }, [driverId, requests, isOnline])
-  const completedRides = assignedRides.filter((ride) => (ride.status ?? ride.state) === 'completed')
+  const today = localDateKey(new Date())
+  const completedRides = assignedRides.filter((ride) => {
+    const completedAt = new Date(ride.completedAt ?? ride.updatedAt ?? ride.createdAt)
+    return (ride.status ?? ride.state) === 'completed' && localDateKey(completedAt) === today
+  })
   const earningsToday = completedRides.reduce((total, ride) => {
     return total + calculateDriverEarnings(ride.finalFare ?? ride.estimatedFare ?? 0)
   }, 0)

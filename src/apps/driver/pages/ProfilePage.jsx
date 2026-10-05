@@ -18,10 +18,14 @@ export default function DriverProfilePage() {
   const rides = getItem('gr_rides', [])
   const driverRides = (Array.isArray(rides) ? rides : []).filter((ride) => ride.driverId === driverId)
   const completedTrips = driverRides.filter((ride) => (ride.status ?? ride.state) === 'completed').length
-  const acceptedTrips = driverRides.filter((ride) => ['accepted', 'arrived', 'started', 'completed'].includes(ride.status ?? ride.state)).length
-  const acceptanceRate = driverRides.length > 0
-    ? Math.round((acceptedTrips / driverRides.length) * 100)
+  const storedRequests = getItem(`gr_driver_requests_${driverId}`, [])
+  const driverRequests = Array.isArray(storedRequests) ? storedRequests : []
+  const acceptedRequests = driverRequests.filter((request) => request.status === 'accepted').length
+  const acceptanceRate = driverRequests.length > 0
+    ? Math.round((acceptedRequests / driverRequests.length) * 100)
     : 100
+  const driverProfile = user?.driverProfile ?? {}
+  const vehicle = driverProfile.vehicle ?? user?.vehicle ?? {}
   const fullName = user?.fullName ?? 'Samith Perera'
   const initials = fullName.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()
 
@@ -44,14 +48,14 @@ export default function DriverProfilePage() {
       </section>
 
       <section className="driver-performance-grid" aria-label="Driver performance">
-        <div><FiStar /><strong>4.9</strong><span>Rating</span></div>
-        <div><FiTruck /><strong>{completedTrips}</strong><span>Total trips</span></div>
+        <div><FiStar /><strong>{driverProfile.rating ?? '4.9'}</strong><span>Rating</span></div>
+        <div><FiTruck /><strong>{driverProfile.totalTrips ?? completedTrips}</strong><span>Total trips</span></div>
         <div><FiUser /><strong>{acceptanceRate}%</strong><span>Acceptance</span></div>
       </section>
 
       <section className="driver-vehicle-section">
         <header><div><span className="eyebrow">REGISTERED VEHICLE</span><h2>Vehicle details</h2></div><FiTruck /></header>
-        <div className="driver-vehicle-row"><span className="vehicle-symbol">A</span><div><strong>Toyota Aqua</strong><small>Pearl white · 2019</small></div><b>WP CAB-4821</b></div>
+        <div className="driver-vehicle-row"><span className="vehicle-symbol">{vehicle.make?.[0] ?? 'A'}</span><div><strong>{vehicle.name || [vehicle.make, vehicle.model].filter(Boolean).join(' ') || 'Toyota Aqua'}</strong><small>{vehicle.color ?? 'Pearl white'} · {vehicle.year ?? '2019'}</small></div><b>{vehicle.plateNumber ?? vehicle.registrationNumber ?? 'WP CAB-4821'}</b></div>
       </section>
 
       <section className="driver-documents-section">

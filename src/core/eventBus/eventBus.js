@@ -1,7 +1,35 @@
 /** A small synchronous event emitter with snapshot-safe listener iteration. */
+const CROSS_TAB_EVENT_KEY = 'gr_event_bus_message'
+const CROSS_TAB_EVENTS = new Set([
+  'ride:requested',
+  'ride:rejected',
+  'ride:accepted',
+  'ride:arrived',
+  'ride:started',
+  'ride:completed',
+  'ride:cancelled',
+])
+
 export class EventEmitter {
   constructor() {
     this.listenersByEvent = new Map()
+    this.sourceId = `${Date.now()}-${Math.random()}`
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', (storageEvent) => {
+        if (storageEvent.key !== CROSS_TAB_EVENT_KEY || !storageEvent.newValue) return
+
+        try {
+          const message = JSON.parse(storageEvent.newValue)
+          if (message.sourceId === this.sourceId || !CROSS_TAB_EVENTS.has(message.eventName)) return
+          const listeners = this.listenersByEvent.get(message.eventName)
+          if (!listeners?.size) return
+          for (const listener of [...listeners]) listener(...message.args)
+        } catch {
+          return
+        }
+      })
+    }
   }
 
   /** Register a listener and return the emitter for chainable registration. */
@@ -43,10 +71,26 @@ export class EventEmitter {
   /** Emit synchronously; return false when no listener was registered. */
   emit(eventName, ...args) {
     const listeners = this.listenersByEvent.get(eventName)
-    if (!listeners?.size) return false
+    const hasListeners = Boolean(listeners?.size)
 
-    for (const listener of [...listeners]) listener(...args)
-    return true
+    if (listeners?.size) {
+      for (const listener of [...listeners]) listener(...args)
+    }
+
+    if (CROSS_TAB_EVENTS.has(eventName) && typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(CROSS_TAB_EVENT_KEY, JSON.stringify({
+          sourceId: this.sourceId,
+          eventName,
+          args,
+          emittedAt: Date.now(),
+        }))
+      } catch {
+        return hasListeners
+      }
+    }
+
+    return hasListeners
   }
 
   /** Remove one event's listeners, or all listeners when no event is provided. */
