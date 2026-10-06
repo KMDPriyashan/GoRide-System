@@ -1,4 +1,5 @@
 import { PRICING_CONFIG } from '../../config/pricingConfig.js'
+import { getItem } from '../../shared/utils/storage.js'
 import { calculateSurge } from './surgePricing.js'
 
 function requireNonNegativeNumber(value, name) {
@@ -14,6 +15,15 @@ function roundCurrency(amount) {
 function getPromotion(promoCode, pricingConfig) {
   if (!promoCode) return null
   if (typeof promoCode === 'object') return promoCode
+
+  const storedPromos = getItem('gr_promo_codes', [])
+  const storedPromo = (Array.isArray(storedPromos) ? storedPromos : []).find((promo) => {
+    return promo.code?.toUpperCase() === String(promoCode).trim().toUpperCase()
+  })
+  if (storedPromo) {
+    if (!storedPromo.enabled || (storedPromo.expires && new Date(`${storedPromo.expires}T23:59:59`) < new Date())) return null
+    return { type: 'percent', value: storedPromo.discount }
+  }
 
   const promotions = pricingConfig.promoCodes ?? pricingConfig.promotions ?? {}
   const normalizedCode = String(promoCode).trim().toUpperCase()
@@ -64,7 +74,16 @@ export function calculateFare({
   requireNonNegativeNumber(tipAmount, 'tipAmount')
 
   const config = pricingConfig ?? PRICING_CONFIG
-  const rideRates = config.rideTypes?.[rideType] ?? {}
+  const savedFare = getItem('gr_admin_pricing', null)?.fares?.[rideType]
+  const rideRates = {
+    ...(config.rideTypes?.[rideType] ?? {}),
+    ...(savedFare ? {
+      baseFare: savedFare.base,
+      perKilometer: savedFare.perKm,
+      perMinute: savedFare.perMin,
+      minimumFare: savedFare.minimum,
+    } : {}),
+  }
   const baseFare = rideRates.baseFare ?? config.baseFare ?? 0
   const perKilometer = rideRates.perKilometer ?? config.perKilometer ?? 0
   const perMinute = rideRates.perMinute ?? config.perMinute ?? 0
@@ -75,8 +94,14 @@ export function calculateFare({
     throw new RangeError('Pricing rates must be finite non-negative numbers.')
   }
 
+  const storedZones = getItem('gr_surge_zones', [])
+  const configuredZones = Array.isArray(storedZones) ? storedZones.map((zone) => ({
+    ...zone,
+    radiusKm: zone.radiusKm ?? zone.radius,
+  })) : []
+  const surgeZones = activeSurgeZones.length ? activeSurgeZones : configuredZones
   const surgeFromZone = pickupLocation
-    ? calculateSurge(pickupLocation, activeSurgeZones)
+    ? calculateSurge(pickupLocation, surgeZones)
     : config.surgeMultiplier?.default ?? 1
   const maximumSurge = config.surgeMultiplier?.maximum ?? Infinity
   const surgeMultiplier = Math.min(surgeFromZone, maximumSurge)
@@ -110,7 +135,10 @@ export function calculateDriverEarnings(totalFare, pricingConfig = PRICING_CONFI
   requireNonNegativeNumber(totalFare, 'totalFare')
 
   const config = pricingConfig ?? PRICING_CONFIG
-  const commissionValue = config.platformCommissionRate ?? config.commissionRate ?? 0.2
+  const storedCommission = getItem('gr_admin_pricing', null)?.commission
+  const commissionValue = Number.isFinite(storedCommission)
+    ? storedCommission / 100
+    : config.platformCommissionRate ?? config.commissionRate ?? 0.2
   if (!Number.isFinite(commissionValue) || commissionValue < 0) {
     throw new RangeError('Platform commission must be a finite non-negative number.')
   }

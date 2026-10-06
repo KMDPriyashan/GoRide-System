@@ -14,6 +14,13 @@ const DriverHomePage = lazy(() => import('./apps/driver/pages/HomePage.jsx'))
 const DriverEarningsPage = lazy(() => import('./apps/driver/pages/EarningsPage.jsx'))
 const DriverProfilePage = lazy(() => import('./apps/driver/pages/ProfilePage.jsx'))
 const DriverTripPage = lazy(() => import('./apps/driver/pages/TripPage.jsx'))
+const AdminLayout = lazy(() => import('./apps/admin/AdminLayout.jsx'))
+const AdminDashboardPage = lazy(() => import('./apps/admin/pages/DashboardPage.jsx'))
+const AdminDriversPage = lazy(() => import('./apps/admin/pages/DriversPage.jsx'))
+const AdminRidesPage = lazy(() => import('./apps/admin/pages/RidesPage.jsx'))
+const AdminAnalyticsPage = lazy(() => import('./apps/admin/pages/AnalyticsPage.jsx'))
+const AdminPricingPage = lazy(() => import('./apps/admin/pages/PricingPage.jsx'))
+const AdminAuditLogsPage = lazy(() => import('./apps/admin/pages/AuditLogsPage.jsx'))
 
 function App() {
   return (
@@ -35,6 +42,18 @@ function App() {
           <Route path="earnings" element={<Suspense fallback={<main className="driver-content-page">Loading earnings...</main>}><DriverEarningsPage /></Suspense>} />
           <Route path="profile" element={<Suspense fallback={<main className="driver-content-page">Loading profile...</main>}><DriverProfilePage /></Suspense>} />
           <Route path="trip/:rideId" element={<Suspense fallback={<main className="driver-content-page">Loading trip...</main>}><DriverTripPage /></Suspense>} />
+        </Route>
+        <Route path="/admin" element={
+          <Suspense fallback={<main className="admin-loading">Loading operations workspace...</main>}>
+            <AdminLayout />
+          </Suspense>
+        }>
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="drivers" element={<AdminDriversPage />} />
+          <Route path="rides" element={<AdminRidesPage />} />
+          <Route path="analytics" element={<AdminAnalyticsPage />} />
+          <Route path="pricing" element={<AdminPricingPage />} />
+          <Route path="audit-logs" element={<AdminAuditLogsPage />} />
         </Route>
         <Route path="/" element={<Navigate to="/rider" replace />} />
         <Route path="*" element={<Navigate to="/rider" replace />} />

@@ -46,7 +46,7 @@ function calculateFinalFare(ride, elapsedSeconds) {
     rideType: ride.rideType,
     distanceKm: ride.distanceKm ?? 0,
     durationMin: elapsedSeconds / 60,
-    pickupLocation: null,
+    pickupLocation: ride.pickup,
     pricingConfig: PRICING_CONFIG,
   })
 }

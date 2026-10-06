@@ -73,6 +73,7 @@ export default function MapView({
   zoom = DEFAULT_MAP_ZOOM,
   markers = [],
   polyline = [],
+  polylines = [],
   onMapClick,
   className = '',
 }) {
@@ -98,6 +99,12 @@ export default function MapView({
         {routePositions.length > 1 && (
           <Polyline positions={routePositions} pathOptions={{ color: '#10B981', weight: 5, opacity: 0.9 }} />
         )}
+        {polylines.map((route) => {
+          const positions = Array.isArray(route.positions) ? route.positions.map(getLatLng) : []
+          return positions.length > 1 ? (
+            <Polyline key={route.id} positions={positions} pathOptions={{ color: '#3388ff', weight: 4, opacity: 0.78 }} />
+          ) : null
+        })}
       </MapContainer>
     </div>
   )

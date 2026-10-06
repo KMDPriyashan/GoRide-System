@@ -15,6 +15,7 @@ const ONLINE_KEY = 'gr_driver_online'
 const ONLINE_SECONDS_KEY = 'gr_driver_seconds_today'
 const ONLINE_SECONDS_DATE_KEY = 'gr_driver_seconds_date'
 const DRIVER_DEMO_ID = 'driver-demo'
+const ONLINE_DRIVERS_KEY = 'gr_driver_locations'
 
 function getStoredRides() {
   const rides = getItem('gr_rides', [])
@@ -52,7 +53,7 @@ export default function DriverHomePage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const driverId = user?.id ?? DRIVER_DEMO_ID
-  const [isOnline, setIsOnline] = useState(() => getItem(ONLINE_KEY, false) === true)
+  const [isOnline, setIsOnline] = useState(() => getItem(`gr_driver_online_${driverId}`, getItem(ONLINE_KEY, false)) === true)
   const [driverLocation, setDriverLocation] = useState(DEFAULT_MAP_CENTER)
   const [onlineSeconds, setOnlineSeconds] = useState(getTodayOnlineSeconds)
   const [requests, setRequests] = useState([])
@@ -89,6 +90,17 @@ export default function DriverHomePage() {
     return () => window.clearInterval(intervalId)
   }, [isOnline])
 
+  useEffect(() => {
+    const storedLocations = getItem(ONLINE_DRIVERS_KEY, [])
+    const locations = Array.isArray(storedLocations) ? storedLocations : []
+    const nextEntry = { driverId, location: driverLocation, online: isOnline, updatedAt: new Date().toISOString() }
+    const nextLocations = locations.some((entry) => entry.driverId === driverId)
+      ? locations.map((entry) => entry.driverId === driverId ? nextEntry : entry)
+      : [...locations, nextEntry]
+    setItem(ONLINE_DRIVERS_KEY, nextLocations)
+    setItem(`gr_driver_online_${driverId}`, isOnline)
+  }, [driverId, driverLocation, isOnline])
+
   const onRideRequested = useCallback((ride) => {
     if (!ride?.id || (ride.status ?? ride.state) !== 'requested' || queuedIds.current.has(ride.id)) return
     queuedIds.current.add(ride.id)
@@ -108,6 +120,7 @@ export default function DriverHomePage() {
   const setOnline = (nextOnline) => {
     setIsOnline(nextOnline)
     setItem(ONLINE_KEY, nextOnline)
+    setItem(`gr_driver_online_${driverId}`, nextOnline)
     if (nextOnline) toast.success('You are online. Looking for rides.')
     else {
       setRequests([])

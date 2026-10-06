@@ -21,7 +21,7 @@ const RIDE_TYPES = [
   { id: 'bike', name: 'Bike', detail: 'Quick solo trips', icon: FaMotorcycle, multiplier: 0.72, speed: 32, seats: '1 seat' },
 ]
 
-function getFare(rideType, distanceKm, durationMin) {
+function getFare(rideType, distanceKm, durationMin, pickupLocation) {
   const multiplier = rideType.multiplier
   const pricingConfig = {
     ...PRICING_CONFIG,
@@ -35,7 +35,7 @@ function getFare(rideType, distanceKm, durationMin) {
     rideType: rideType.id,
     distanceKm,
     durationMin,
-    pickupLocation: null,
+    pickupLocation,
     pricingConfig,
   })
 }
@@ -75,7 +75,7 @@ export default function BookingPage() {
       dropoff,
       distanceKm,
       estimatedDurationMin: selectedETA,
-      estimatedFare: getFare(selectedType, distanceKm, selectedETA),
+      estimatedFare: getFare(selectedType, distanceKm, selectedETA, pickup),
     })
     const rides = getItem('gr_rides', [])
     setItem('gr_rides', [...(Array.isArray(rides) ? rides : []), ride])
