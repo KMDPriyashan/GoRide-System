@@ -23,6 +23,7 @@ const EVENT_TO_STATE = {
   'ride:arrived': 'arrived',
   'ride:started': 'started',
   'ride:completed': 'completed',
+  'ride:cancelled': 'cancelled',
 }
 
 const TIMELINE = [

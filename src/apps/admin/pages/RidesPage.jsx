@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { FiEye, FiRefreshCw, FiX } from 'react-icons/fi'
+import { eventBus } from '../../../core/eventBus/eventBus.js'
 import { dateLabel, driverForRide, driverName, getDrivers, getRides, getRiders, money, rideFare, riderName, rideState, writeAudit, writeRides } from '../adminUtils.js'
 
 const TIMELINE = [
@@ -37,6 +38,9 @@ export default function RidesPage() {
       setRides(next)
       setSelected(updated)
       writeAudit(action, `Ride ${ride.rideNumber ?? ride.id}`)
+      if (changes.status === 'cancelled') {
+        eventBus.emit('ride:cancelled', { rideId: ride.id, driverId: ride.driverId, updates: changes })
+      }
     }
   }
 

@@ -157,6 +157,10 @@ export function login(usernameOrEmail, password) {
   }
 
   if (storedUser.userType === 'driver') {
+    if (storedUser.status === 'suspended') {
+      return { success: false, user: null, message: 'Your driver account is suspended. Contact support for assistance.' }
+    }
+
     const approvalStatus = storedUser.driverProfile?.approvalStatus ?? storedUser.approvalStatus
     if (approvalStatus !== 'approved') {
       const message = approvalStatus === 'rejected'
