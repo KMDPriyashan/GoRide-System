@@ -8,6 +8,9 @@ const CROSS_TAB_EVENTS = new Set([
   'ride:started',
   'ride:completed',
   'ride:cancelled',
+  'driver:location',
+  'driver:online',
+  'driver:offline',
 ])
 
 export class EventEmitter {
