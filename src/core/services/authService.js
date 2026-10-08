@@ -66,7 +66,7 @@ export function findUserByUsernameOrEmail(identifier) {
  * Register a rider or driver after validating required fields and uniqueness.
  * Admins must come from trusted seed data; public signup cannot assign admin.
  */
-export function signup({ userType, username, password, email, phone, fullName } = {}) {
+export function signup({ userType, username, password, email, phone, fullName, driverProfile = {} } = {}) {
   if (!['rider', 'driver'].includes(userType)) {
     return { success: false, user: null, message: 'Choose a valid account type.' }
   }
@@ -120,7 +120,7 @@ export function signup({ userType, username, password, email, phone, fullName } 
     createdAt: timestamp,
     updatedAt: timestamp,
     ...(userType === 'driver'
-      ? { driverProfile: { approvalStatus: 'pending' } }
+      ? { driverProfile: { ...driverProfile, approvalStatus: 'pending' } }
       : { riderProfile: { wallet: 0 } }),
   }
 

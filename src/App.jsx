@@ -15,6 +15,8 @@ const DriverEarningsPage = lazy(() => import('./apps/driver/pages/EarningsPage.j
 const DriverProfilePage = lazy(() => import('./apps/driver/pages/ProfilePage.jsx'))
 const DriverTripPage = lazy(() => import('./apps/driver/pages/TripPage.jsx'))
 const AdminLayout = lazy(() => import('./apps/admin/AdminLayout.jsx'))
+const LoginPage = lazy(() => import('./apps/auth/LoginPage.jsx'))
+const SignupPage = lazy(() => import('./apps/auth/SignupPage.jsx'))
 const AdminDashboardPage = lazy(() => import('./apps/admin/pages/DashboardPage.jsx'))
 const AdminDriversPage = lazy(() => import('./apps/admin/pages/DriversPage.jsx'))
 const AdminRidesPage = lazy(() => import('./apps/admin/pages/RidesPage.jsx'))
@@ -26,8 +28,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/login" element={<Suspense fallback={<main className="auth-loading">Loading login...</main>}><LoginPage /></Suspense>} />
+        <Route path="/signup" element={<Suspense fallback={<main className="auth-loading">Loading signup...</main>}><SignupPage /></Suspense>} />
         <Route path="/rider" element={<RiderLayout />}>
           <Route index element={<HomePage />} />
+          <Route path="home" element={<HomePage />} />
           <Route path="booking" element={<BookingPage />} />
           <Route path="rides" element={<RidesPage />} />
           <Route path="profile" element={<ProfilePage />} />
@@ -39,6 +44,7 @@ function App() {
           </Suspense>
         }>
           <Route index element={<Suspense fallback={<main className="driver-content-page">Loading dashboard...</main>}><DriverHomePage /></Suspense>} />
+          <Route path="home" element={<Suspense fallback={<main className="driver-content-page">Loading dashboard...</main>}><DriverHomePage /></Suspense>} />
           <Route path="earnings" element={<Suspense fallback={<main className="driver-content-page">Loading earnings...</main>}><DriverEarningsPage /></Suspense>} />
           <Route path="profile" element={<Suspense fallback={<main className="driver-content-page">Loading profile...</main>}><DriverProfilePage /></Suspense>} />
           <Route path="trip/:rideId" element={<Suspense fallback={<main className="driver-content-page">Loading trip...</main>}><DriverTripPage /></Suspense>} />
@@ -48,15 +54,16 @@ function App() {
             <AdminLayout />
           </Suspense>
         }>
-          <Route index element={<AdminDashboardPage />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<AdminDashboardPage />} />
           <Route path="drivers" element={<AdminDriversPage />} />
           <Route path="rides" element={<AdminRidesPage />} />
           <Route path="analytics" element={<AdminAnalyticsPage />} />
           <Route path="pricing" element={<AdminPricingPage />} />
           <Route path="audit-logs" element={<AdminAuditLogsPage />} />
         </Route>
-        <Route path="/" element={<Navigate to="/rider" replace />} />
-        <Route path="*" element={<Navigate to="/rider" replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
       <ToastContainer position="top-center" autoClose={2600} theme="light" />
     </BrowserRouter>

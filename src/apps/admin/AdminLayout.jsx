@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext.jsx'
 import './admin.css'
 
 const NAV_ITEMS = [
-  { to: '/admin', label: 'Dashboard', icon: FiActivity, end: true },
+  { to: '/admin/dashboard', label: 'Dashboard', icon: FiActivity, end: true },
   { to: '/admin/drivers', label: 'Drivers', icon: FiUsers },
   { to: '/admin/rides', label: 'Rides', icon: FiMap },
   { to: '/admin/analytics', label: 'Analytics', icon: FiBarChart2 },

@@ -21,7 +21,7 @@ export default function RiderLayout() {
               key={to}
               to={to}
               end={end}
-              className={({ isActive }) => `rider-nav-item${isActive ? ' is-active' : ''}`}
+              className={({ isActive }) => `rider-nav-item${isActive || (to === '/rider' && pathname === '/rider/home') ? ' is-active' : ''}`}
             >
               <Icon aria-hidden="true" />
               <span>{label}</span>

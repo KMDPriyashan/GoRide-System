@@ -21,7 +21,7 @@ export default function DriverLayout() {
               key={to}
               to={to}
               end={end}
-              className={({ isActive }) => `driver-nav-item${isActive ? ' is-active' : ''}`}
+              className={({ isActive }) => `driver-nav-item${isActive || (to === '/driver' && pathname === '/driver/home') ? ' is-active' : ''}`}
             >
               <Icon aria-hidden="true" />
               <span>{label}</span>
