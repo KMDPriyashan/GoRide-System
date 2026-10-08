@@ -72,16 +72,13 @@ export default function TrackingPage() {
   useEffect(() => { rideRef.current = ride }, [ride])
 
   const moveRideToState = useCallback((nextState, updates = {}) => {
-    setRide((currentRide) => {
-      if (!currentRide || currentRide.state === nextState || !canTransition(currentRide.state, nextState)) {
-        return currentRide
-      }
+    const currentRide = rideRef.current
+    if (!currentRide || currentRide.state === nextState || !canTransition(currentRide.state, nextState)) return
 
-      const nextRide = transitionRide(currentRide, nextState, { ...updates, status: nextState })
-      rideRef.current = nextRide
-      saveRide(nextRide)
-      return nextRide
-    })
+    const nextRide = transitionRide(currentRide, nextState, { ...updates, status: nextState })
+    rideRef.current = nextRide
+    saveRide(nextRide)
+    setRide(nextRide)
   }, [])
 
   useEffect(() => {

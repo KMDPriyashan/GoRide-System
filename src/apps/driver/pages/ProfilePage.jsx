@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiArrowUpRight, FiFileText, FiLogOut, FiShield, FiStar, FiTruck, FiUser } from 'react-icons/fi'
+import { FiArrowUpRight, FiFileText, FiLogOut, FiShield, FiTruck, FiUser } from 'react-icons/fi'
 import { useAuth } from '../../../context/AuthContext.jsx'
 import { getItem, setItem } from '../../../shared/utils/storage.js'
+import ConfirmDialog from '../../../shared/components/common/ConfirmDialog.jsx'
+import StarRating from '../../../shared/components/common/StarRating.jsx'
 
 const DRIVER_DEMO_ID = 'driver-demo'
 const DOCUMENTS = [
@@ -13,6 +16,7 @@ const DOCUMENTS = [
 export default function DriverProfilePage() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const [confirmLogout, setConfirmLogout] = useState(false)
   const driverId = user?.id ?? DRIVER_DEMO_ID
   const isOnline = getItem('gr_driver_online', false) === true
   const rides = getItem('gr_rides', [])
@@ -48,7 +52,7 @@ export default function DriverProfilePage() {
       </section>
 
       <section className="driver-performance-grid" aria-label="Driver performance">
-        <div><FiStar /><strong>{driverProfile.rating ?? '4.9'}</strong><span>Rating</span></div>
+        <div><StarRating value={Number(driverProfile.rating ?? 4.9)} readOnly label="Driver rating" /><span>Rating</span></div>
         <div><FiTruck /><strong>{driverProfile.totalTrips ?? completedTrips}</strong><span>Total trips</span></div>
         <div><FiUser /><strong>{acceptanceRate}%</strong><span>Acceptance</span></div>
       </section>
@@ -72,7 +76,8 @@ export default function DriverProfilePage() {
         <p className="document-reminder"><FiShield /> Keep your documents up to date to stay available for trips.</p>
       </section>
 
-      <button type="button" className="driver-signout-button" onClick={handleLogout}><FiLogOut /> Sign out</button>
+      <button type="button" className="driver-signout-button" onClick={() => setConfirmLogout(true)}><FiLogOut /> Sign out</button>
+      <ConfirmDialog open={confirmLogout} title="Sign out of GoRide?" message="You’ll need to sign in again to manage your driver account." confirmLabel="Sign out" onCancel={() => setConfirmLogout(false)} onConfirm={handleLogout} />
     </main>
   )
 }

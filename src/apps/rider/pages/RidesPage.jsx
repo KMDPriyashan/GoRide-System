@@ -1,15 +1,21 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../../context/AuthContext.jsx'
 import { FiArrowUpRight, FiClock } from 'react-icons/fi'
 import { getItem } from '../../../shared/utils/storage.js'
 import { formatCurrency, formatDateTime } from '../../../shared/utils/formatters.js'
+import EmptyState from '../../../shared/components/common/EmptyState.jsx'
+import RideStatusBadge from '../../../shared/components/common/RideStatusBadge.jsx'
 
 export default function RidesPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const rides = useMemo(() => {
     const storedRides = getItem('gr_rides', [])
-    return Array.isArray(storedRides) ? [...storedRides].reverse() : []
-  }, [])
+    return Array.isArray(storedRides)
+      ? storedRides.filter((ride) => ride.riderId === user?.id).reverse()
+      : []
+  }, [user?.id])
 
   return (
     <main className="content-page rides-page">
@@ -18,15 +24,7 @@ export default function RidesPage() {
         <span className="ride-count">{String(rides.length).padStart(2, '0')}</span>
       </header>
       {rides.length === 0 ? (
-        <section className="empty-state">
-          <span className="empty-state-icon"><FiClock /></span>
-          <span className="eyebrow">NOTHING ON THE MAP YET</span>
-          <h2>Your first ride is waiting.</h2>
-          <p>Pick a destination and we’ll take it from there.</p>
-          <button type="button" className="plan-ride-button" onClick={() => navigate('/rider')}>
-            Find a ride <FiArrowUpRight />
-          </button>
-        </section>
+        <EmptyState icon={FiClock} eyebrow="NOTHING ON THE MAP YET" title="Your first ride is waiting." message="Pick a destination and we’ll take it from there." actionLabel="Find a ride" to="/rider/booking" className="empty-state" />
       ) : (
         <div className="ride-history-list">
           {rides.map((ride) => (
@@ -44,9 +42,7 @@ export default function RidesPage() {
               </span>
               <span className="ride-history-aside">
                 <strong>{formatCurrency(ride.estimatedFare ?? 0)}</strong>
-                <small className={`status-label status-label--${ride.status ?? ride.state}`}>
-                  {ride.status ?? ride.state}
-                </small>
+                <RideStatusBadge status={ride.status ?? ride.state} />
                 <FiArrowUpRight />
               </span>
             </button>

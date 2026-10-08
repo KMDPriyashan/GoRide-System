@@ -1,4 +1,5 @@
 .admin-shell{min-height:100dvh;background:#f4f6f5;color:#17211b;font-family:'DM Sans',sans-serif;--admin-green:#087a50;--admin-ink:#17211b;--admin-muted:#78847d;--admin-border:#e3e9e5;--admin-panel:#fff}
+.admin-status--requested{background:#fff4d8;color:#986900}.admin-status--accepted{background:#e9f1ff;color:#3867b2}.admin-status--arrived{background:#f0eaff;color:#7146a5}.admin-status--started{background:#e5f6ec;color:#19704a}.admin-status--completed{background:#edf0f2;color:#586570}.admin-status--cancelled{background:#fff0ee;color:#b4483e}
 .admin-sidebar{position:fixed;inset:0 auto 0 0;z-index:20;display:flex;width:238px;flex-direction:column;padding:26px 16px 18px;background:#10251d;color:#eff8f2}
 .admin-brand{display:flex;align-items:center;gap:11px;margin:0 8px 42px;color:inherit;text-decoration:none;font-family:var(--font-display);font-size:19px;font-weight:800}
 .admin-brand>span:last-child{display:grid;gap:2px}.admin-brand small{color:#91a99c;font-family:'DM Sans',sans-serif;font-size:9px;font-weight:700;letter-spacing:.12em}

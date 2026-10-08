@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { FiArrowLeft, FiCheck, FiMapPin } from 'react-icons/fi'
 import { FaCar, FaCarSide, FaMotorcycle, FaShuttleVan } from 'react-icons/fa'
+import { useAuth } from '../../../context/AuthContext.jsx'
 import { createRide } from '../../../core/models/Ride.js'
 import { haversineDistance } from '../../../core/algorithms/haversine.js'
 import { estimateETA, calculateFare } from '../../../core/algorithms/fareCalculator.js'
@@ -43,6 +44,7 @@ function getFare(rideType, distanceKm, durationMin, pickupLocation) {
 export default function BookingPage() {
   const navigate = useNavigate()
   const routeLocation = useLocation()
+  const { user } = useAuth()
   const initialPickup = routeLocation.state?.pickup ?? { ...DEFAULT_MAP_CENTER, name: 'Current location' }
   const initialDropoff = routeLocation.state?.destination ?? null
   const [pickup, setPickup] = useState(initialPickup)
@@ -70,6 +72,8 @@ export default function BookingPage() {
     const ride = createRide({
       status: 'requested',
       state: 'requested',
+      riderId: user?.id,
+      riderName: user?.fullName,
       rideType: selectedType.id,
       pickup,
       dropoff,

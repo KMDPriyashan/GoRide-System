@@ -4,6 +4,7 @@ import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { initializeGoRideSeed } from './seed/seedData.js'
 import './index.css'
+import './shared/components/common/common.css'
 
 try {
   initializeGoRideSeed()

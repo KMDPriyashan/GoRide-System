@@ -14,6 +14,7 @@ import { useAuth } from '../../../context/AuthContext.jsx'
 import { calculateDriverEarnings } from '../../../core/algorithms/fareCalculator.js'
 import { getItem } from '../../../shared/utils/storage.js'
 import { formatCurrency, formatDateTime } from '../../../shared/utils/formatters.js'
+import EmptyState from '../../../shared/components/common/EmptyState.jsx'
 
 const PERIODS = [
   { id: 'today', label: 'Today' },
@@ -135,7 +136,7 @@ export default function DriverEarningsPage() {
       <section className="driver-trip-history">
         <header><div><span className="eyebrow">COMPLETED WORK</span><h2>Trip history</h2></div><span>{rides.length} trips</span></header>
         {rides.length === 0 ? (
-          <div className="driver-empty-history">Complete your first trip to see it here.</div>
+          <EmptyState title="No completed trips yet" message="Your earnings and completed trips will appear here." />
         ) : (
           [...rides].reverse().map((ride) => (
             <article className="driver-earnings-trip" key={ride.id}>

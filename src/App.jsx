@@ -1,6 +1,10 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
+import { useAuth } from './context/AuthContext.jsx'
+import Loader from './shared/components/common/Loader.jsx'
+import Skeleton from './shared/components/common/Skeleton.jsx'
+import ErrorBoundary from './shared/components/common/ErrorBoundary.jsx'
 import RiderLayout from './apps/rider/RiderLayout.jsx'
 import BookingPage from './apps/rider/pages/BookingPage.jsx'
 import HomePage from './apps/rider/pages/HomePage.jsx'
@@ -8,6 +12,10 @@ import ProfilePage from './apps/rider/pages/ProfilePage.jsx'
 import RidesPage from './apps/rider/pages/RidesPage.jsx'
 import TrackingPage from './apps/rider/pages/TrackingPage.jsx'
 import 'react-toastify/dist/ReactToastify.css'
+
+function PageLoading({ label = 'Loading GoRide' }) {
+  return <main className="ui-page-loading"><Loader label={label} /><Skeleton variant="card" count={2} /></main>
+}
 
 const DriverLayout = lazy(() => import('./apps/driver/DriverLayout.jsx'))
 const DriverHomePage = lazy(() => import('./apps/driver/pages/HomePage.jsx'))
@@ -25,46 +33,45 @@ const AdminPricingPage = lazy(() => import('./apps/admin/pages/PricingPage.jsx')
 const AdminAuditLogsPage = lazy(() => import('./apps/admin/pages/AuditLogsPage.jsx'))
 
 function App() {
+  const { isLoading } = useAuth()
+  if (isLoading) return <PageLoading label="Restoring your session" />
+
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Suspense fallback={<main className="auth-loading">Loading login...</main>}><LoginPage /></Suspense>} />
-        <Route path="/signup" element={<Suspense fallback={<main className="auth-loading">Loading signup...</main>}><SignupPage /></Suspense>} />
-        <Route path="/rider" element={<RiderLayout />}>
-          <Route index element={<HomePage />} />
-          <Route path="home" element={<HomePage />} />
-          <Route path="booking" element={<BookingPage />} />
-          <Route path="rides" element={<RidesPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="tracking/:rideId" element={<TrackingPage />} />
-        </Route>
-        <Route path="/driver" element={
-          <Suspense fallback={<main className="driver-content-page">Loading driver workspace...</main>}>
-            <DriverLayout />
-          </Suspense>
-        }>
-          <Route index element={<Suspense fallback={<main className="driver-content-page">Loading dashboard...</main>}><DriverHomePage /></Suspense>} />
-          <Route path="home" element={<Suspense fallback={<main className="driver-content-page">Loading dashboard...</main>}><DriverHomePage /></Suspense>} />
-          <Route path="earnings" element={<Suspense fallback={<main className="driver-content-page">Loading earnings...</main>}><DriverEarningsPage /></Suspense>} />
-          <Route path="profile" element={<Suspense fallback={<main className="driver-content-page">Loading profile...</main>}><DriverProfilePage /></Suspense>} />
-          <Route path="trip/:rideId" element={<Suspense fallback={<main className="driver-content-page">Loading trip...</main>}><DriverTripPage /></Suspense>} />
-        </Route>
-        <Route path="/admin" element={
-          <Suspense fallback={<main className="admin-loading">Loading operations workspace...</main>}>
-            <AdminLayout />
-          </Suspense>
-        }>
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<AdminDashboardPage />} />
-          <Route path="drivers" element={<AdminDriversPage />} />
-          <Route path="rides" element={<AdminRidesPage />} />
-          <Route path="analytics" element={<AdminAnalyticsPage />} />
-          <Route path="pricing" element={<AdminPricingPage />} />
-          <Route path="audit-logs" element={<AdminAuditLogsPage />} />
-        </Route>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading />}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/rider" element={<RiderLayout />}>
+              <Route index element={<HomePage />} />
+              <Route path="home" element={<HomePage />} />
+              <Route path="booking" element={<BookingPage />} />
+              <Route path="rides" element={<RidesPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="tracking/:rideId" element={<TrackingPage />} />
+            </Route>
+            <Route path="/driver" element={<DriverLayout />}>
+              <Route index element={<DriverHomePage />} />
+              <Route path="home" element={<DriverHomePage />} />
+              <Route path="earnings" element={<DriverEarningsPage />} />
+              <Route path="profile" element={<DriverProfilePage />} />
+              <Route path="trip/:rideId" element={<DriverTripPage />} />
+            </Route>
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<AdminDashboardPage />} />
+              <Route path="drivers" element={<AdminDriversPage />} />
+              <Route path="rides" element={<AdminRidesPage />} />
+              <Route path="analytics" element={<AdminAnalyticsPage />} />
+              <Route path="pricing" element={<AdminPricingPage />} />
+              <Route path="audit-logs" element={<AdminAuditLogsPage />} />
+            </Route>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
       <ToastContainer position="top-center" autoClose={2600} theme="light" />
     </BrowserRouter>
   )

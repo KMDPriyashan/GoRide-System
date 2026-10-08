@@ -3105,3 +3105,31 @@ h2,
     padding-left: 14px;
   }
 }
+
+@media (min-width: 760px) {
+  .rider-shell,
+  .driver-shell {
+    width: min(100%, 28rem);
+    min-height: 100dvh;
+    margin-inline: auto;
+    overflow-x: clip;
+    box-shadow: 0 0 45px #16291c12;
+  }
+
+  .home-map,
+  .driver-home-map {
+    position: absolute;
+  }
+
+  .rider-bottom-nav,
+  .driver-bottom-nav {
+    right: auto;
+    left: 50%;
+    width: min(100%, 28rem);
+    transform: translateX(-50%);
+  }
+
+  .driver-content-page {
+    width: 100%;
+  }
+}
