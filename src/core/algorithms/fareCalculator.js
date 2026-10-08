@@ -22,7 +22,11 @@ function getPromotion(promoCode, pricingConfig) {
   })
   if (storedPromo) {
     if (!storedPromo.enabled || (storedPromo.expires && new Date(`${storedPromo.expires}T23:59:59`) < new Date())) return null
-    return { type: 'percent', value: storedPromo.discount }
+    return {
+      ...storedPromo,
+      type: storedPromo.type ?? (storedPromo.discountAmount !== undefined ? 'fixed' : 'percent'),
+      value: storedPromo.discountAmount ?? storedPromo.discount ?? storedPromo.value,
+    }
   }
 
   const promotions = pricingConfig.promoCodes ?? pricingConfig.promotions ?? {}
